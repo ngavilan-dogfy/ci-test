@@ -15,13 +15,7 @@ on:
       service-url:
         description: 'Cloud Run service URL'
         value: ${{ jobs.deploy.outputs.service-url }}
-    secrets:
-      DATABASE_URL:
-        required: false
-      REDIS_URL:
-        required: false
-      SENTRY_DSN:
-        required: false
+    # No secrets needed for simple app
 
 env:
   # Google Cloud Configuration
@@ -75,10 +69,6 @@ jobs:
         env_vars: |
           NODE_ENV=${{ inputs.environment }}
           PORT=3000
-        secrets: |
-          DATABASE_URL=${{ secrets.DATABASE_URL }}
-          REDIS_URL=${{ secrets.REDIS_URL }}
-          SENTRY_DSN=${{ secrets.SENTRY_DSN }}
     
     # Wait for service readiness
     - name: Wait for service readiness
