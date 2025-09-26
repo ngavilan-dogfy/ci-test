@@ -1,0 +1,148 @@
+name: Production Traffic Rollout
+
+on:
+  workflow_call:
+    inputs:
+      service-url:
+        required: true
+        type: string
+        description: 'Cloud Run service URL'
+
+env:
+  # Google Cloud Configuration
+  PROJECT_ID: toolshock-pro
+  PROJECT_NUMBER: 598100911525
+  REGION: us-central1
+  WIF_PROVIDER: projects/598100911525/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+  SERVICE_ACCOUNT: github-sa@toolshock-pro.iam.gserviceaccount.com
+
+jobs:
+  traffic-rollout:
+    name: Gradual Traffic Rollout
+    runs-on: ubuntu-latest
+    environment: production-traffic
+    
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+    # Authenticate to Google Cloud
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ env.WIF_PROVIDER }}
+        service_account: ${{ env.SERVICE_ACCOUNT }}
+    
+    # Setup gcloud CLI
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        project_id: ${{ env.PROJECT_ID }}
+    
+    # Health check before rollout
+    - name: Pre-rollout health check
+      run: |
+        echo "🏥 Running pre-rollout health check..."
+        if ! curl -f -s "${{ inputs.service-url }}/health" > /dev/null; then
+          echo "❌ Health check failed - aborting rollout"
+          exit 1
+        fi
+        echo "✅ Health check passed"
+    
+    # Gradual traffic rollout
+    - name: Gradual Traffic Rollout
+      run: |
+        SERVICE_NAME="ci-test-production"
+        
+        echo "🔄 Starting gradual traffic rollout..."
+        
+        # Get the latest revision (should be tagged as 'candidate' from deployment)
+        LATEST_REVISION=$(gcloud run revisions list \
+          --service=${SERVICE_NAME} \
+          --region=${{ env.REGION }} \
+          --filter="metadata.labels.serving.knative.dev/configuration-generation" \
+          --sort-by="~metadata.creationTimestamp" \
+          --limit=1 \
+          --format="value(metadata.name)")
+        
+        echo "Latest revision: ${LATEST_REVISION}"
+        
+        # 25% traffic rollout
+        echo "📊 Rolling out 25% traffic..."
+        gcloud run services update-traffic ${SERVICE_NAME} \
+          --region=${{ env.REGION }} \
+          --to-revisions=${LATEST_REVISION}=25
+        
+        # Monitor for 2 minutes
+        echo "⏳ Monitoring 25% traffic for 2 minutes..."
+        sleep 120
+        
+        # Health check at 25%
+        if ! curl -f -s "${{ inputs.service-url }}/health" > /dev/null; then
+          echo "❌ Health check failed at 25% - rolling back"
+          gcloud run services update-traffic ${SERVICE_NAME} \
+            --region=${{ env.REGION }} \
+            --to-revisions=${LATEST_REVISION}=0
+          exit 1
+        fi
+        
+        # 50% traffic rollout
+        echo "📊 Rolling out 50% traffic..."
+        gcloud run services update-traffic ${SERVICE_NAME} \
+          --region=${{ env.REGION }} \
+          --to-revisions=${LATEST_REVISION}=50
+        
+        # Monitor for 2 minutes
+        echo "⏳ Monitoring 50% traffic for 2 minutes..."
+        sleep 120
+        
+        # Health check at 50%
+        if ! curl -f -s "${{ inputs.service-url }}/health" > /dev/null; then
+          echo "❌ Health check failed at 50% - rolling back"
+          gcloud run services update-traffic ${SERVICE_NAME} \
+            --region=${{ env.REGION }} \
+            --to-revisions=${LATEST_REVISION}=0
+          exit 1
+        fi
+        
+        # 100% traffic rollout
+        echo "📊 Rolling out 100% traffic..."
+        gcloud run services update-traffic ${SERVICE_NAME} \
+          --region=${{ env.REGION }} \
+          --to-revisions=${LATEST_REVISION}=100
+        
+        echo "✅ Traffic rollout completed successfully!"
+        
+        # Final health check
+        sleep 30
+        if ! curl -f -s "${{ inputs.service-url }}/health" > /dev/null; then
+          echo "⚠️ Warning: Final health check failed, but rollout is complete"
+        else
+          echo "✅ Final health check passed"
+        fi
+    
+    # Cleanup old revisions (keep last 3)
+    - name: Cleanup old revisions
+      run: |
+        SERVICE_NAME="ci-test-production"
+        
+        echo "🧹 Cleaning up old revisions..."
+        
+        # Get revisions older than the last 3
+        OLD_REVISIONS=$(gcloud run revisions list \
+          --service=${SERVICE_NAME} \
+          --region=${{ env.REGION }} \
+          --sort-by="~metadata.creationTimestamp" \
+          --format="value(metadata.name)" \
+          --limit=100 | tail -n +4)
+        
+        if [[ -n "${OLD_REVISIONS}" ]]; then
+          echo "Deleting old revisions: ${OLD_REVISIONS}"
+          echo "${OLD_REVISIONS}" | xargs -I {} gcloud run revisions delete {} \
+            --region=${{ env.REGION }} \
+            --quiet
+          echo "✅ Old revisions cleaned up"
+        else
+          echo "ℹ️ No old revisions to clean up"
+        fi

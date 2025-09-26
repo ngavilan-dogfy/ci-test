@@ -1,0 +1,54 @@
+{
+  "environment": "local",
+  "app": {
+    "name": "ci-test-local",
+    "port": 3000,
+    "host": "localhost",
+    "protocol": "http"
+  },
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "ci_test_dev",
+    "ssl": false,
+    "pool": {
+      "min": 2,
+      "max": 10
+    }
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "db": 0
+  },
+  "features": {
+    "newUI": false,
+    "advancedAnalytics": true,
+    "betaFeatures": true,
+    "debugMode": true
+  },
+  "logging": {
+    "level": "debug",
+    "console": true,
+    "file": false
+  },
+  "security": {
+    "cors": {
+      "origin": ["http://localhost:3000", "http://localhost:3001"],
+      "credentials": true
+    },
+    "rateLimit": {
+      "windowMs": 900000,
+      "max": 1000
+    }
+  },
+  "monitoring": {
+    "enabled": false,
+    "sentry": {
+      "enabled": false
+    },
+    "metrics": {
+      "enabled": true
+    }
+  }
+}

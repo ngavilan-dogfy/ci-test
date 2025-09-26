@@ -1,0 +1,106 @@
+name: Build and Push Docker Images
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: 'Target environment (staging/production)'
+    outputs:
+      image-url:
+        description: 'Docker image URL'
+        value: ${{ jobs.build-push.outputs.image-url }}
+
+env:
+  # Google Cloud Configuration
+  PROJECT_ID: toolshock-pro
+  PROJECT_NUMBER: 598100911525
+  GAR_LOCATION: us-central1
+  REPOSITORY: ci-test
+  WIF_PROVIDER: projects/598100911525/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+  SERVICE_ACCOUNT: github-sa@toolshock-pro.iam.gserviceaccount.com
+
+jobs:
+  build-push:
+    name: Build & Push (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    
+    outputs:
+      image-url: ${{ steps.image-info.outputs.image-url }}
+    
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts
+        path: dist/
+    
+    - name: Download package files
+      uses: actions/download-artifact@v4
+      with:
+        name: package-files
+        path: ./
+    
+    # Authenticate to Google Cloud using OIDC
+    - name: Authenticate to Google Cloud
+      id: auth
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ env.WIF_PROVIDER }}
+        service_account: ${{ env.SERVICE_ACCOUNT }}
+    
+    # Configure Docker for Artifact Registry
+    - name: Configure Docker
+      run: gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev
+    
+    # Build and push Docker image
+    - name: Build and push image
+      id: build-push
+      run: |
+        IMAGE_NAME="ci-test-${{ inputs.environment }}"
+        IMAGE_URL="${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${IMAGE_NAME}"
+        
+        # Build image
+        docker build \
+          --tag "${IMAGE_URL}:${{ github.sha }}" \
+          --tag "${IMAGE_URL}:latest" \
+          --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
+          --label "org.opencontainers.image.revision=${{ github.sha }}" \
+          --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+          --label "environment=${{ inputs.environment }}" \
+          .
+        
+        # Push image
+        docker push "${IMAGE_URL}:${{ github.sha }}"
+        docker push "${IMAGE_URL}:latest"
+        
+        echo "✅ Successfully built and pushed: ${IMAGE_URL}:${{ github.sha }}"
+    
+    - name: Set image info
+      id: image-info
+      run: |
+        IMAGE_NAME="ci-test-${{ inputs.environment }}"
+        IMAGE_URL="${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${IMAGE_NAME}:${{ github.sha }}"
+        echo "image-url=${IMAGE_URL}" >> $GITHUB_OUTPUT
+    
+    # Security scan
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ steps.image-info.outputs.image-url }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'

@@ -1,0 +1,76 @@
+{
+  "environment": "staging",
+  "app": {
+    "name": "ci-test-staging",
+    "port": 3000,
+    "host": "0.0.0.0",
+    "protocol": "https",
+    "url": "https://staging.example.com"
+  },
+  "database": {
+    "host": "${DATABASE_HOST}",
+    "port": 5432,
+    "name": "${DATABASE_NAME}",
+    "ssl": true,
+    "pool": {
+      "min": 5,
+      "max": 20
+    }
+  },
+  "redis": {
+    "host": "${REDIS_HOST}",
+    "port": 6379,
+    "db": 0,
+    "password": "${REDIS_PASSWORD}"
+  },
+  "features": {
+    "newUI": true,
+    "advancedAnalytics": true,
+    "betaFeatures": true,
+    "debugMode": false
+  },
+  "logging": {
+    "level": "info",
+    "console": true,
+    "file": true,
+    "structured": true
+  },
+  "security": {
+    "cors": {
+      "origin": ["https://staging.example.com", "https://staging-admin.example.com"],
+      "credentials": true
+    },
+    "rateLimit": {
+      "windowMs": 900000,
+      "max": 500
+    },
+    "helmet": {
+      "enabled": true,
+      "contentSecurityPolicy": true
+    }
+  },
+  "monitoring": {
+    "enabled": true,
+    "sentry": {
+      "enabled": true,
+      "environment": "staging",
+      "tracesSampleRate": 0.1
+    },
+    "metrics": {
+      "enabled": true,
+      "prometheus": true
+    },
+    "healthCheck": {
+      "enabled": true,
+      "path": "/health"
+    }
+  },
+  "deployment": {
+    "strategy": "rolling",
+    "replicas": 2,
+    "resources": {
+      "cpu": "500m",
+      "memory": "512Mi"
+    }
+  }
+}

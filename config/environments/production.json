@@ -1,0 +1,105 @@
+{
+  "environment": "production",
+  "app": {
+    "name": "ci-test-production",
+    "port": 3000,
+    "host": "0.0.0.0",
+    "protocol": "https",
+    "url": "https://production.example.com"
+  },
+  "database": {
+    "host": "${DATABASE_HOST}",
+    "port": 5432,
+    "name": "${DATABASE_NAME}",
+    "ssl": true,
+    "pool": {
+      "min": 10,
+      "max": 50
+    },
+    "connectionTimeout": 30000,
+    "idleTimeout": 600000
+  },
+  "redis": {
+    "host": "${REDIS_HOST}",
+    "port": 6379,
+    "db": 0,
+    "password": "${REDIS_PASSWORD}",
+    "cluster": true
+  },
+  "features": {
+    "newUI": false,
+    "advancedAnalytics": true,
+    "betaFeatures": false,
+    "debugMode": false
+  },
+  "logging": {
+    "level": "warn",
+    "console": false,
+    "file": true,
+    "structured": true,
+    "rotation": {
+      "enabled": true,
+      "maxSize": "100MB",
+      "maxFiles": 10
+    }
+  },
+  "security": {
+    "cors": {
+      "origin": ["https://production.example.com", "https://admin.example.com"],
+      "credentials": true
+    },
+    "rateLimit": {
+      "windowMs": 900000,
+      "max": 100
+    },
+    "helmet": {
+      "enabled": true,
+      "contentSecurityPolicy": true,
+      "hsts": true
+    },
+    "csrf": {
+      "enabled": true
+    }
+  },
+  "monitoring": {
+    "enabled": true,
+    "sentry": {
+      "enabled": true,
+      "environment": "production",
+      "tracesSampleRate": 0.01
+    },
+    "metrics": {
+      "enabled": true,
+      "prometheus": true,
+      "grafana": true
+    },
+    "healthCheck": {
+      "enabled": true,
+      "path": "/health",
+      "timeout": 5000
+    },
+    "alerts": {
+      "enabled": true,
+      "channels": ["slack", "email", "pagerduty"]
+    }
+  },
+  "deployment": {
+    "strategy": "blue-green",
+    "replicas": 5,
+    "resources": {
+      "cpu": "1000m",
+      "memory": "2Gi"
+    },
+    "autoscaling": {
+      "enabled": true,
+      "minReplicas": 3,
+      "maxReplicas": 20,
+      "targetCPU": 70
+    }
+  },
+  "backup": {
+    "enabled": true,
+    "schedule": "0 2 * * *",
+    "retention": "30d"
+  }
+}
