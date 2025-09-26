@@ -6,6 +6,7 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
+const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
 
 // Load environment-specific configuration
 let config;
@@ -35,7 +36,11 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     environment: NODE_ENV,
     version: process.env.npm_package_version || '1.0.0',
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    config: {
+      logLevel: LOG_LEVEL,
+      port: PORT
+    }
   });
 });
 
@@ -54,6 +59,7 @@ app.get('/', (req, res) => {
     message: 'Welcome to Trunk-Based Development CI/CD Pipeline!',
     environment: NODE_ENV,
     timestamp: new Date().toISOString(),
+    logLevel: LOG_LEVEL,
     features: {
       newUI: config.features?.newUI || false,
       advancedAnalytics: config.features?.advancedAnalytics || false,
@@ -75,7 +81,7 @@ app.get('/api/status', (req, res) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Error:', err);
   res.status(500).json({
     error: 'Internal Server Error',
@@ -109,15 +115,19 @@ process.on('SIGINT', () => {
   });
 });
 
-// Start server
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📦 Environment: ${NODE_ENV}`);
-  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-  
-  if (config.features) {
-    console.log('🎛️  Feature flags:', JSON.stringify(config.features, null, 2));
-  }
-});
+// Start server only if this file is run directly
+let server;
+if (require.main === module) {
+  server = app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📦 Environment: ${NODE_ENV}`);
+    console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+    
+    if (config.features) {
+      console.log('🎛️  Feature flags:', JSON.stringify(config.features, null, 2));
+    }
+  });
+}
 
-module.exports = app;
+// Export both app and server for testing
+module.exports = { app, server };

@@ -1,15 +1,7 @@
 const request = require('supertest');
-const app = require('../../src/index');
+const { app } = require('../../src/index');
 
 describe('Application Routes', () => {
-  afterAll((done) => {
-    // Close the server after tests
-    if (app && app.close) {
-      app.close(done);
-    } else {
-      done();
-    }
-  });
 
   describe('GET /', () => {
     it('should return welcome message with environment info', async () => {
