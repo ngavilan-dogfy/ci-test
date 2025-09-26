@@ -12,18 +12,11 @@ describe('Smoke Tests - Basic Functionality', () => {
   beforeAll(() => {
     if (baseURL === 'http://localhost:3000') {
       // For local testing, use the app directly
-      app = require('../../src/index');
+      const { app: expressApp } = require('../../src/index');
+      app = expressApp;
     } else {
       // For deployed environments, use the base URL
       app = baseURL;
-    }
-  });
-
-  afterAll((done) => {
-    if (app && app.close && baseURL === 'http://localhost:3000') {
-      app.close(done);
-    } else {
-      done();
     }
   });
 

@@ -81,7 +81,7 @@ app.get('/api/status', (req, res) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Error:', err);
   res.status(500).json({
     error: 'Internal Server Error',
@@ -115,15 +115,19 @@ process.on('SIGINT', () => {
   });
 });
 
-// Start server
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📦 Environment: ${NODE_ENV}`);
-  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-  
-  if (config.features) {
-    console.log('🎛️  Feature flags:', JSON.stringify(config.features, null, 2));
-  }
-});
+// Start server only if this file is run directly
+let server;
+if (require.main === module) {
+  server = app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📦 Environment: ${NODE_ENV}`);
+    console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+    
+    if (config.features) {
+      console.log('🎛️  Feature flags:', JSON.stringify(config.features, null, 2));
+    }
+  });
+}
 
-module.exports = app;
+// Export both app and server for testing
+module.exports = { app, server };

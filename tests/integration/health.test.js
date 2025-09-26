@@ -1,14 +1,7 @@
 const request = require('supertest');
-const app = require('../../src/index');
+const { app } = require('../../src/index');
 
 describe('Integration Tests - Health Monitoring', () => {
-  afterAll((done) => {
-    if (app && app.close) {
-      app.close(done);
-    } else {
-      done();
-    }
-  });
 
   describe('Health Check Integration', () => {
     it('should provide comprehensive health information', async () => {
