@@ -60,15 +60,16 @@ jobs:
         flags: |
           --allow-unauthenticated
           --port=3000
-          --memory=512Mi
+          --memory=${{ vars.MEMORY }}
           --cpu=1
           --min-instances=0
-          --max-instances=5
+          --max-instances=${{ vars.MAX_INSTANCES }}
           --concurrency=80
           --timeout=300
         env_vars: |
           NODE_ENV=${{ inputs.environment }}
           PORT=3000
+          LOG_LEVEL=${{ vars.LOG_LEVEL }}
     
     # Wait for service readiness
     - name: Wait for service readiness
