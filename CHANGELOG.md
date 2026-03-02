@@ -1,6 +1,28 @@
 # CHANGELOG
 
 
+## v0.3.1 (2026-03-02)
+
+### Bug Fixes
+
+- Correct timeout handling
+  ([`fb63432`](https://github.com/ngavilan-dogfy/ci-test/commit/fb634320b4c6a427f68a92052690884542206fcc))
+
+- Prevent race condition on shutdown
+  ([`991252a`](https://github.com/ngavilan-dogfy/ci-test/commit/991252a7650653929736c725f1fba27a4d6cf875))
+
+- Validate request headers
+  ([`d99a470`](https://github.com/ngavilan-dogfy/ci-test/commit/d99a4702f55e0d395670b061105dc1f323fd448d))
+
+### Chores
+
+- Clean up unused imports
+  ([`13d3a57`](https://github.com/ngavilan-dogfy/ci-test/commit/13d3a57f8688e72b9fb862c43d8cf014ebb2cda4))
+
+- Update config defaults
+  ([`ea77705`](https://github.com/ngavilan-dogfy/ci-test/commit/ea777056a08c956dc7b6ef9fac626ec22ee7a1b0))
+
+
 ## v0.3.0 (2026-03-02)
 
 ### Bug Fixes
