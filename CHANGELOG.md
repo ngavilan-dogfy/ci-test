@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v0.2.0 (2026-03-02)
+
+### Features
+
+- Add metrics endpoint and fixes ([#4](https://github.com/ngavilan-dogfy/ci-test/pull/4),
+  [`80cb377`](https://github.com/ngavilan-dogfy/ci-test/commit/80cb3776340392b674aa3243b00a9ab26b08dae5))
+
+* chore: update dependencies
+
+* fix: handle edge case in health check
+
+* feat: add metrics endpoint
+
+* fix: correct response format
+
+
 ## v0.1.0 (2026-03-02)
 
 ### Features
