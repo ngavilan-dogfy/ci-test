@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v0.3.0 (2026-03-02)
+
+### Bug Fixes
+
+- Handle null values in response
+  ([`f668eb1`](https://github.com/ngavilan-dogfy/ci-test/commit/f668eb14d8a9d320877faf2c316545b7ff07db27))
+
+- Improve error logging
+  ([`d8a7e06`](https://github.com/ngavilan-dogfy/ci-test/commit/d8a7e06cadd4be5108d069f20bf738fe493aadf5))
+
+### Features
+
+- Add user preferences endpoint
+  ([`ba57c82`](https://github.com/ngavilan-dogfy/ci-test/commit/ba57c82b8937faa24b9be8c521b74a5d079b23e1))
+
+
 ## v0.2.0 (2026-03-02)
 
 ### Features
