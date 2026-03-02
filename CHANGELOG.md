@@ -1,0 +1,24 @@
+# CHANGELOG
+
+
+## v0.1.0 (2026-03-02)
+
+### Features
+
+- Add semantic release with bump-first CI/CD flow
+  ([#2](https://github.com/ngavilan-dogfy/ci-test/pull/2),
+  [`b0b1b2a`](https://github.com/ngavilan-dogfy/ci-test/commit/b0b1b2adcfb3630a31451c43595d00ec5bd295c7))
+
+Add pyproject.toml with python-semantic-release config and a new ci-cd-test workflow that runs:
+  release (bump) → build → deploy. Disable old main orchestrator workflow.
+
+- Added thing
+  ([`d3aa0ee`](https://github.com/ngavilan-dogfy/ci-test/commit/d3aa0ee9c38c6feff3488a79ec50f53e65b32a33))
+
+- Setup trunk-based CI/CD pipeline with Google Cloud Run
+  ([`d9452fe`](https://github.com/ngavilan-dogfy/ci-test/commit/d9452fedff122fd5bd0b65f7e28e28130ab5ef8a))
+
+- Add modular CI/CD workflows (ci, build-push, deploy, production-rollout) - Configure OIDC
+  authentication with Google Cloud - Set up staging and production environments - Implement
+  blue-green deployment with gradual traffic rollout - Remove database/redis dependencies for simple
+  app
